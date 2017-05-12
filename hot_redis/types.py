@@ -1133,8 +1133,8 @@ class Deque(List):
     def extendleft(self, other):
         self.lpush(*other)
 
-    def popleft(self, i=1):
-        return self.pop(i * -1)
+    def popleft(self):
+        return self.pop(0)
 
 
 collections.MutableSequence.register(Deque)
