@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+from collections import abc
 from itertools import chain, repeat
 import operator
 import os
@@ -8,10 +9,9 @@ import time
 import uuid
 
 from redis import ResponseError
-import redis
-from redis.client import Redis
-from redis.client import Redis, zset_score_pairs
-
+import redis  #@UnusedImport
+from redis.client import Redis  #@UnusedImport
+from redis.client import Redis, zset_score_pairs  #@Reimport
 
 try:
     from Queue import Empty as QueueEmpty, Full as QueueFull
@@ -22,6 +22,7 @@ except ImportError:
 
 
 class Ranking(object):
+
     def __init__(self, ranking_script, keys_):
         if len(keys_) < 2:
             raise ValueError("You have to have at least two lists to compare")
@@ -169,7 +170,6 @@ def configure(config):
     global _config
     _config = config
 
-
 ####################################################################
 #                                                                  #
 #  The following functions are all used for creating methods that  #
@@ -177,6 +177,7 @@ def configure(config):
 #  and make much more sense further down where they're applied.    #
 #                                                                  #
 ####################################################################
+
 
 def value_left(self, other):
     """
@@ -232,12 +233,12 @@ def inplace(method_name):
 
     return method
 
-
 #####################################################################
 #                                                                   #
 #  Base class / groupings of logical operators that types inherit.  #
 #                                                                   #
 #####################################################################
+
 
 class Base(object):
     """
@@ -312,7 +313,7 @@ class Numeric(Base):
     __sub__ = op_left(operator.sub)
     __mul__ = op_left(operator.mul)
     try:
-        __div__ = op_left(operator.div)
+        __div__ = op_left(operator.div)  #@UndefinedVariable
     except AttributeError:
         pass  # removed in python 3
     __floordiv__ = op_left(operator.floordiv)
@@ -324,7 +325,7 @@ class Numeric(Base):
     __rsub__ = op_right(operator.sub)
     __rmul__ = op_right(operator.mul)
     try:
-        __rdiv__ = op_right(operator.div)
+        __rdiv__ = op_right(operator.div)  #@UndefinedVariable
     except AttributeError:
         pass  # removed in python 3
     __rtruediv__ = op_right(operator.truediv)
@@ -340,12 +341,12 @@ class Numeric(Base):
     __imod__ = inplace("number_mod")
     __ipow__ = inplace("number_pow")
 
-
 ####################################################
 #                                                  #
 #  Python types that map directly to Redis types.  #
 #                                                  #
 ####################################################
+
 
 class List(Sequential):
     """
@@ -708,7 +709,7 @@ class ImmutableString(String):
     """
 
     def __iadd__(self, other):
-        self.key = self.__class__(self +other).key
+        self.key = self.__class__(self + other).key
         return self
 
     def __imul__(self, i):
@@ -760,7 +761,6 @@ class Float(Numeric):
         self.incrbyfloat(f * -1)
         return self
 
-
 ###################################################################
 #                                                                 #
 #  Following are the types found in the Python standard library,  #
@@ -768,6 +768,7 @@ class Float(Numeric):
 #  types. First up: Queue module.                                 #
 #                                                                 #
 ###################################################################
+
 
 class Queue(List):
     """
@@ -868,7 +869,6 @@ class LifoSetQueue(LifoQueue, SetQueue):
     """
     pass
 
-
 ####################################################################
 #                                                                  #
 #  Next up, some lock structures from the threading module. These  #
@@ -876,6 +876,7 @@ class LifoSetQueue(LifoQueue, SetQueue):
 #  blocking / non-blocking mechanics desired.                      #
 #                                                                  #
 ####################################################################
+
 
 class BoundedSemaphore(Queue):
     """
@@ -967,7 +968,6 @@ class RLock(Lock):
                 return
         super(RLock, self).release()
 
-
 #####################################################################
 #                                                                   #
 #  Some members from Python's collections standard library module.  #
@@ -988,7 +988,7 @@ class DefaultDict(Dict):
         return self.setdefault(key, self.default_factory())
 
 
-class MultiSet(collections.MutableMapping, Base):
+class MultiSet(abc.MutableMapping, Base):
     """
     Redis sorted set <-> Python's collections.Counter.
     """
@@ -1001,7 +1001,7 @@ class MultiSet(collections.MutableMapping, Base):
 
     @classmethod
     def _to_kv_iterable(cls, iterable):
-        if isinstance(iterable, collections.Mapping):
+        if isinstance(iterable, abc.Mapping):
             for key, count in iterable.iteritems():
                 if not isinstance(key, basestring):
                     raise ValueError("Key must be instance od basestring")
@@ -1122,7 +1122,7 @@ class MultiSet(collections.MutableMapping, Base):
         return self.__class__(self.values)
 
 
-collections.MutableMapping.register(MultiSet)
+abc.MutableMapping.register(MultiSet)  #@UndefinedVariable
 
 
 class Deque(List):
@@ -1137,4 +1137,4 @@ class Deque(List):
         return self.pop(0)
 
 
-collections.MutableSequence.register(Deque)
+abc.MutableSequence.register(Deque)  #@UndefinedVariable
